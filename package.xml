@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>test</name>
+  <version>0.0.1</version>
+  <description>Prueba de ROS para github actions</description>
+
+  <maintainer email="brad@gmail.com">brad</maintainer>
+  <license>Apache-2.0</license>
+
+  <depend>rclpy</depend>
+  <depend>std_msgs</depend>
+
+</package>
+

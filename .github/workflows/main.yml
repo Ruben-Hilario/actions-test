@@ -1,27 +1,82 @@
-name: Ejecutar script Python
+# name: Ejecutar script Python
+
+# on:
+#   push:
+#     branches:
+#       - main
+
+# jobs:
+#   ejecutar-python:
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       - name: Clonar repositorio
+#         uses: actions/checkout@v3
+
+#       - name: Configurar Python
+#         uses: actions/setup-python@v4
+#         with:
+#           python-version: '3.10'
+
+#       - name: Instalar dependencias
+#         run: |
+#           python -m pip install --upgrade pip
+#           pip install -r requirements.txt
+
+#       - name: Ejecutar script
+#         run: python prueba.py
+
+#       - name: Subir artefactos de ejecución
+#         uses: actions/upload-artifact@v3
+#         with:
+#           name: reportes
+#           path: |
+#             reporte_ejecucion.csv
+#             reporte_resultados.txt  
+
+
+name: Construcción y prueba de paquete ROS 2 Humble
 
 on:
   push:
     branches:
-      - main 
+      - main  # O cualquier rama donde quieras que se ejecute el workflow
 
 jobs:
-  ejecutar-python:
-    runs-on: ubuntu-latest
+  build:
+    runs-on: ubuntu-22.04  # Ubuntu 22.04 es compatible con ROS 2 Humble
 
     steps:
+      # Paso 1: Clonar el repositorio
       - name: Clonar repositorio
         uses: actions/checkout@v3
 
-      - name: Configurar Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
+      # Paso 2: Configurar ROS 2 Humble
+      - name: Configurar ROS 2 Humble
+        run: |
+          sudo apt update
+          sudo apt install -y curl gnupg2 lsb-release
+          curl -sSL http://repo.ros2.org/repos/ros2-humble.list | sudo tee /etc/apt/sources.list.d/ros2-humble.list
+          curl -sSL https://raw.githubusercontent.com/ros2/ros2/master/ros2.repos -o ros2.repos
+          sudo apt install -y ros-humble-desktop
 
-      - name: Instalar dependencias
+      # Paso 3: Instalar dependencias de Python (si es necesario)
+      - name: Instalar dependencias de Python
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install -r requirements.txt  # Si tienes este archivo
 
-      - name: Ejecutar script
-        run: python prueba.py
+      # Paso 4: Crear el espacio de trabajo ROS 2
+      - name: Crear espacio de trabajo ROS 2
+        run: |
+          mkdir -p ~/ros2_ws/src
+          cd ~/ros2_ws/src
+          ln -s $GITHUB_WORKSPACE .
+          cd ~/ros2_ws
+          colcon build --symlink-install  # Usamos colcon para construir el paquete ROS 2
+
+      # Paso 5: Configurar el entorno y ejecutar las pruebas (si tienes alguna)
+      - name: Ejecutar pruebas ROS 2
+        run: |
+          source ~/ros2_ws/install/setup.bash
+          colcon test  # Ejecuta las pruebas del paquete
